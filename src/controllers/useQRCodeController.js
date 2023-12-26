@@ -29,19 +29,24 @@ async function getAllQRCode() {
 async function checkQRCode(req) {
     try {
         const pool = await db.connect();
+        const { QRCode } = req.body[0];
+
         const isChecked = 0;
         const result = await pool.request().query(`Select ID, QR_Code From Code where Checked  = ${isChecked}`)
         if (result.recordset.length > 0) {
-            const { QRCode } = req.body;
             if (isChecked === null || isChecked === 0) {
-                await pool.request().query(`Update Code SET Checked = 1 , DateTime_Check = GETDATE() WHERE QR_Code = ${QRCode} `)
+                await pool.request()
+                    .input('QRCode', QRCode)
+                    .query(`Update Code 
+                Set Checked = CASE WHEN Checked = 0 Then 1 else Checked end,
+                DateTime_Check = GETDATE() WHERE QR_Code = @QRCode AND Checked = 0;`)
+                console.log('Update Successfully');
             }
         } else {
-            console.log('No records found with Checked = 0');
+            console.log('No update because the code has been scanned');
         }
-        // console.log(result.recordset);
     } catch (error) {
-        throw new Error(`Query error ${error.message}`)
+        throw new Error(`Update Check ${error.message}`)
     }
 }
 module.exports = { getAllQRCode, checkQRCode }

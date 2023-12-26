@@ -14,6 +14,7 @@ router.get('/allQRCode', async (req, res) => {
 router.post('/checkQRCode', async (req, res) => {
     try {
         await useQRCodeController.checkQRCode(req)
+        // console.log('req', req.body);
         res.send('Update status successfully')
     } catch (error) {
         console.error('Error: ', error.message);
